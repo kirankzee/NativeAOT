@@ -1,5 +1,4 @@
 # .NET 10 Native AOT vs JIT Benchmark Suite
-
 A comprehensive benchmarking application to compare .NET 10 Web APIs compiled with Just-In-Time (JIT) compilation versus Native AOT (Ahead-Of-Time) compilation. This project demonstrates performance differences in cold start time, CRUD latency, throughput, memory usage, and binary size.
 
 ## 🎯 Project Overview
