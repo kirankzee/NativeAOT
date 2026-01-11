@@ -1,0 +1,25 @@
+.filter {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.filter label {
+  font-weight: 600;
+  color: #333;
+}
+
+.filter select {
+  padding: 0.5rem 1rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+  background: white;
+  cursor: pointer;
+}
+
+.filter select:focus {
+  outline: none;
+  border-color: #667eea;
+}
+

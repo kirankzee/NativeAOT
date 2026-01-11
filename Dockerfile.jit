@@ -1,0 +1,24 @@
+# Dockerfile for JIT API
+FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS base
+WORKDIR /app
+EXPOSE 5000
+EXPOSE 5001
+
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
+WORKDIR /src
+COPY ["src/Api.Jit/Api.Jit.csproj", "src/Api.Jit/"]
+COPY ["src/Shared/Models/Shared.Models.csproj", "src/Shared/Models/"]
+COPY ["src/Shared/DataAccess/Shared.DataAccess.csproj", "src/Shared/DataAccess/"]
+RUN dotnet restore "src/Api.Jit/Api.Jit.csproj"
+COPY . .
+WORKDIR "/src/src/Api.Jit"
+RUN dotnet build "Api.Jit.csproj" -c Release -o /app/build
+
+FROM build AS publish
+RUN dotnet publish "Api.Jit.csproj" -c Release -o /app/publish
+
+FROM base AS final
+WORKDIR /app
+COPY --from=publish /app/publish .
+ENTRYPOINT ["dotnet", "Api.Jit.dll"]
+

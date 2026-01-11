@@ -1,0 +1,24 @@
+# Dockerfile for Native AOT API
+FROM mcr.microsoft.com/dotnet/runtime-deps:10.0 AS base
+WORKDIR /app
+EXPOSE 5000
+EXPOSE 5001
+
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
+WORKDIR /src
+COPY ["src/Api.Aot/Api.Aot.csproj", "src/Api.Aot/"]
+COPY ["src/Shared/Models/Shared.Models.csproj", "src/Shared/Models/"]
+COPY ["src/Shared/DataAccess/Shared.DataAccess.csproj", "src/Shared/DataAccess/"]
+RUN dotnet restore "src/Api.Aot/Api.Aot.csproj"
+COPY . .
+WORKDIR "/src/src/Api.Aot"
+RUN dotnet build "Api.Aot.csproj" -c Release -o /app/build
+
+FROM build AS publish
+RUN dotnet publish "Api.Aot.csproj" -c Release -o /app/publish /p:UseAppHost=true
+
+FROM base AS final
+WORKDIR /app
+COPY --from=publish /app/publish .
+ENTRYPOINT ["./Api.Aot"]
+

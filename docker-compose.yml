@@ -1,0 +1,62 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: benchmark-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: benchmarkdb
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./scripts/database-init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api-jit:
+    build:
+      context: .
+      dockerfile: Dockerfile.jit
+    container_name: benchmark-api-jit
+    environment:
+      ASPNETCORE_URLS: http://+:5000
+      ConnectionStrings__PostgreSQL: Host=postgres;Port=5432;Database=benchmarkdb;Username=postgres;Password=postgres
+    ports:
+      - "5000:5000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  api-aot:
+    build:
+      context: .
+      dockerfile: Dockerfile.aot
+    container_name: benchmark-api-aot
+    environment:
+      ASPNETCORE_URLS: http://+:5001
+      ConnectionStrings__PostgreSQL: Host=postgres;Port=5432;Database=benchmarkdb;Username=postgres;Password=postgres
+    ports:
+      - "5001:5001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:5001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  postgres-data:
+
